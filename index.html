@@ -1,0 +1,151 @@
+<!DOCTYPE html><html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barışalım mı?</title>
+<style>
+    :root{
+      --bg:#ffe6e6;
+      --yes:#28a745;
+      --no:#6c757d;
+      --danger:#ff3b30;
+      --text:#222;
+    }
+    *{box-sizing:border-box}
+    body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        min-height:100dvh;
+        background: var(--bg);
+        display:grid; place-items:center;
+        overflow:hidden;
+        color:var(--text);
+    }
+    .wrap{padding:40px 24px; max-width:900px}
+    h1 {
+        font-size: clamp(22px, 4vw, 36px);
+        color: #d63384;
+        margin: 0 0 24px 0;
+    }
+    .buttons {display:flex; gap:12px; justify-content:center; flex-wrap:wrap}
+    button {
+        padding: 12px 22px;
+        font-size: 18px;
+        margin: 6px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform .25s ease, background .25s ease, color .25s ease, box-shadow .25s ease;
+        box-shadow: 0 8px 18px rgba(0,0,0,.12);
+        user-select:none;
+    }
+    #evet { background-color: var(--yes); color: #fff; transform: scale(1); }
+    #hayir { background-color: var(--no); color: #fff; }
+    #hayir.danger{ background: var(--danger); }/* Tam ekran kaplayan evet butonu */
+#evet.fullscreen{
+  position:fixed; inset:0; width:100vw; height:100vh; border-radius:0; z-index:30;
+  font-size: clamp(28px, 8vw, 80px);
+}
+
+/* Son mesaj ve kalp katmanı */
+.overlay{ position:fixed; inset:0; display:none; place-items:center; z-index:40; backdrop-filter: blur(2px);}
+.overlay.show{ display:grid; }
+.overlay .msg{
+  background:#ffffffee; color:#d63384; padding:24px 28px; border-radius:16px; font-weight:700;
+  box-shadow:0 10px 30px rgba(0,0,0,.2); font-size: clamp(18px, 3.5vw, 28px);
+}
+
+/* Uçan kalpler */
+.hearts{ position:fixed; inset:0; pointer-events:none; z-index:35; overflow:hidden }
+.heart{ position:absolute; bottom:-40px; width:24px; height:24px; transform: rotate(45deg); opacity:.9; }
+.heart:before, .heart:after{ content:""; position:absolute; width:24px; height:24px; border-radius:50%; }
+.heart:before{ left:-12px; }
+.heart:after{ top:-12px; }
+@keyframes floatUp { to { transform:translateY(-110vh) rotate(45deg); opacity:0; } }
+
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Seni üzdüğüm için özür dilerim ❤️ Barışalım mı Meliekm?</h1>
+    <div class="buttons">
+      <button id="evet">Evet</button>
+      <button id="hayir">Hayır</button>
+    </div>
+  </div>  <div class="hearts" id="hearts"></div>
+  <div class="overlay" id="overlay"><div class="msg">Benimle barışacağını biliyordum 💖</div></div><script>
+let hayirClick = 0;
+const evetBtn = document.getElementById("evet");
+const hayirBtn = document.getElementById("hayir");
+const hearts = document.getElementById('hearts');
+const overlay = document.getElementById('overlay');
+
+function setYesScale(step){
+  const scale = 1 + step * 0.12; // orantılı büyüme
+  evetBtn.style.transform = `scale(${scale})`;
+}
+
+function makeHeart(x){
+  const el = document.createElement('div');
+  el.className = 'heart';
+  el.style.left = `${x}%`;
+  const size = 14 + Math.random()*26; // 14-40px
+  el.style.width = el.style.height = size + 'px';
+  el.style.filter = 'drop-shadow(0 6px 10px rgba(0,0,0,.15))';
+  const color = `hsl(${330 + Math.random()*40}, 80%, ${55 + Math.random()*20}%)`;
+  el.style.background = color;
+  el.style.animation = `floatUp ${6 + Math.random()*4}s linear forwards`;
+  el.style.opacity = .95;
+  el.style.setProperty('--rnd', Math.random());
+  // pseudo elements color
+  el.style.setProperty('--c', color);
+  el.style.position='absolute';
+  el.style.transform='rotate(45deg)';
+  // tint pseudo elements using box-shadow trick via background
+  el.style.setProperty('--bg', color);
+  el.style.boxShadow = 'inset 0 0 0 0 var(--bg)';
+  el.addEventListener('animationend', () => el.remove());
+  hearts.appendChild(el);
+}
+
+function burstHearts(count=40){
+  for(let i=0;i<count;i++){
+    setTimeout(()=> makeHeart(Math.random()*100), i*25);
+  }
+}
+
+hayirBtn.addEventListener("click", () => {
+    hayirClick++;
+    setYesScale(hayirClick);
+    if (hayirClick === 1) {
+        hayirBtn.textContent = "Emin misin?";
+    } else if (hayirClick === 2) {
+        hayirBtn.textContent = "Gerçekten emin misin?";
+        hayirBtn.classList.add('danger');
+    } else if (hayirClick === 3) {
+        hayirBtn.textContent = "Bir daha düşün lütfen";
+    } else if (hayirClick === 4) {
+        hayirBtn.textContent = "Hayır dersen çok üzülürüm";
+        // Evet butonu tüm ekranı kaplasın ve diğer yerlere basılamasın
+        evetBtn.classList.add('fullscreen');
+        document.body.style.overflow = 'hidden';
+        hayirBtn.disabled = true;
+    }
+});
+
+// Evet'e basınca mesaj ve uçan kalpler
+
+function showWin(){
+  overlay.classList.add('show');
+  burstHearts(80);
+}
+
+evETClickCount = 0;
+
+evetBtn.addEventListener('click', ()=>{
+  // mesaj
+  showWin();
+});
+</script></body>
+</html>
